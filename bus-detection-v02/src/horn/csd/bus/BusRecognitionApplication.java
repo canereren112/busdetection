@@ -10,26 +10,19 @@ import javafx.fxml.FXMLLoader;
 
 public class BusRecognitionApplication extends Application
 {
-	/**
-	 * The main class for a JavaFX application. It creates and handles the main
-	 * window with its resources (style, graphics, etc.).
-	 * 
-	 */
+
 	@Override
 	public void start(Stage primaryStage)
 	{
 		try
 		{
-			// load the FXML resource
-			BorderPane root = (BorderPane) FXMLLoader.load(getClass().getResource("BusRecognition.fxml"));
-			// set a whitesmoke background
-			root.setStyle("-fx-background-color: whitesmoke;");
-			// create and style a scene
-			Scene scene = new Scene(root, 800, 600);
+			BorderPane mainBorderPane = (BorderPane) FXMLLoader.load(getClass().getResource("BusRecognition.fxml"));
+			mainBorderPane.setStyle("-fx-background-color: #dddddd;");
+			Scene scene = new Scene(mainBorderPane, 1150, 650);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-			// create the stage with the given title and the previously created
-			// scene
-			primaryStage.setTitle("Object Recognition");
+
+			
+			primaryStage.setTitle("Bus Recognition");
 			primaryStage.setScene(scene);
 			// show the GUI
 			primaryStage.show();

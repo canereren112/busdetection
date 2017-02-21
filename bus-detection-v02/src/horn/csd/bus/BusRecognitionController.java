@@ -27,22 +27,12 @@ import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-/**
- * The controller associated with the only view of our application. The
- * application logic is implemented here. It handles the button for
- * starting/stopping the camera, the acquired video stream, the relative
- * controls and the image segmentation process.
- * 
- * @author <a href="mailto:luigi.derussis@polito.it">Luigi De Russis</a>
- * @version 1.5 (2015-11-26)
- * @since 1.0 (2015-01-13)
- * 
- */
+
 public class BusRecognitionController
 {
 	// FXML camera button
 	@FXML
-	private Button cameraButton;
+	private Button axisCameraButton;
 	// the FXML area for showing the current frame
 	@FXML
 	private ImageView originalFrame;
@@ -58,13 +48,13 @@ public class BusRecognitionController
 	@FXML
 	private Slider hueEnd;
 	@FXML
-	private Slider saturationStart;
+	private Slider saturationBegin;
 	@FXML
-	private Slider saturationStop;
+	private Slider saturationEnd;
 	@FXML
-	private Slider valueStart;
+	private Slider valueBegin;
 	@FXML
-	private Slider valueStop;
+	private Slider valueEnd;
 	// FXML label to show the current values set with the sliders
 	@FXML
 	private Label hsvCurrentValues;
@@ -91,9 +81,9 @@ public class BusRecognitionController
 		this.hsvCurrentValues.textProperty().bind(hsvValuesProp);
 				
 		// set a fixed width for all the image to show and preserve image ratio
-		this.imageViewProperties(this.originalFrame, 400);
-		this.imageViewProperties(this.maskImage, 200);
-		this.imageViewProperties(this.morphImage, 200);
+		this.imageViewProperties(this.originalFrame, 650);
+		this.imageViewProperties(this.maskImage, 300);
+		this.imageViewProperties(this.morphImage, 300);
 		
 		if (!this.cameraActive)
 		{
@@ -120,7 +110,7 @@ public class BusRecognitionController
 				this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 				
 				// update the button content
-				this.cameraButton.setText("Stop Camera");
+				this.axisCameraButton.setText("Stop Axis Camera");
 			}
 			else
 			{
@@ -133,7 +123,7 @@ public class BusRecognitionController
 			// the camera is not active at this point
 			this.cameraActive = false;
 			// update again the button content
-			this.cameraButton.setText("Start Camera");
+			this.axisCameraButton.setText("Start Camera");
 			
 			// stop the timer
 			try
@@ -188,8 +178,8 @@ public class BusRecognitionController
 					
 					// get thresholding values from the UI
 					// remember: H ranges 0-180, S and V range 0-255
-					Scalar minValues = new Scalar(this.hueBegin.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
-					Scalar maxValues = new Scalar(this.hueEnd.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
+					Scalar minValues = new Scalar(this.hueBegin.getValue(), this.saturationBegin.getValue(), this.valueBegin.getValue());
+					Scalar maxValues = new Scalar(this.hueEnd.getValue(), this.saturationEnd.getValue(), this.valueEnd.getValue());
 					
 					// show the current selected HSV range
 					String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
