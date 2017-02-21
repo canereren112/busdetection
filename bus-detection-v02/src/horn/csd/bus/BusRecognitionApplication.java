@@ -1,4 +1,4 @@
-package it.polito.teaching.cv;
+package horn.csd.bus;
 
 import org.opencv.core.Core;
 

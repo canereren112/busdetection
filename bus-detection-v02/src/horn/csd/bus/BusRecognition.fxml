@@ -6,7 +6,7 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.text.*?>
 	
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="it.polito.teaching.cv.BusRecognitionController">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="horn.csd.bus.BusRecognitionController">
 	<right>
 		<VBox alignment="CENTER" spacing="10">
 			<padding>

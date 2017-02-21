@@ -1,4 +1,4 @@
-package it.polito.teaching.cv;
+package horn.csd.bus;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
