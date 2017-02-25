@@ -73,7 +73,7 @@ public class BusRecognitionController
 	 * The action triggered by pushing the button on the GUI
 	 */
 	@FXML
-	private void startCamera()
+	private void startAxisCamera()
 	{
 		// bind a text property with the string containing the current range of
 		// HSV values for object detection
@@ -123,7 +123,7 @@ public class BusRecognitionController
 			// the camera is not active at this point
 			this.cameraActive = false;
 			// update again the button content
-			this.axisCameraButton.setText("Start Camera");
+			this.axisCameraButton.setText("Start Axis Camera");
 			
 			// stop the timer
 			try
@@ -134,7 +134,7 @@ public class BusRecognitionController
 			catch (InterruptedException e)
 			{
 				// log the exception
-				System.err.println("Exception in stopping the frame capture, trying to release the camera now... " + e);
+				System.err.println("Exception in stopping the Axis frame capture, trying to release the Axis camera now... " + e);
 			}
 			
 			// release the camera
@@ -187,7 +187,7 @@ public class BusRecognitionController
 							+ minValues.val[2] + "-" + maxValues.val[2];
 					this.onFXThread(this.hsvValuesProp, valuesToPrint);
 					
-					// threshold HSV image to select tennis balls
+
 					Core.inRange(hsvImage, minValues, maxValues, mask);
 					// show the partial output
 					this.onFXThread(this.maskImage.imageProperty(), this.mat2Image(mask));
@@ -203,11 +203,11 @@ public class BusRecognitionController
 					Imgproc.dilate(mask, morphOutput, dilateElement);
 					Imgproc.dilate(mask, morphOutput, dilateElement);
 					
+					Image morphImage = this.mat2Image(morphOutput);
 					// show the partial output
-					this.onFXThread(this.morphImage.imageProperty(), this.mat2Image(morphOutput));
+					this.onFXThread(this.morphImage.imageProperty(), morphImage);
 					
-					// find the tennis ball(s) contours and show them
-					frame = this.findAndDrawBalls(morphOutput, frame);
+					
 					
 					// convert the Mat object (OpenCV) to Image (JavaFX)
 					imageToShow = mat2Image(frame);
@@ -225,38 +225,7 @@ public class BusRecognitionController
 		return imageToShow;
 	}
 	
-	/**
-	 * Given a binary image containing one or more closed surfaces, use it as a
-	 * mask to find and highlight the objects contours
-	 * 
-	 * @param maskedImage
-	 *            the binary image to be used as a mask
-	 * @param frame
-	 *            the original {@link Mat} image to be used for drawing the
-	 *            objects contours
-	 * @return the {@link Mat} image with the objects contours framed
-	 */
-	private Mat findAndDrawBalls(Mat maskedImage, Mat frame)
-	{
-		// init
-		List<MatOfPoint> contours = new ArrayList<>();
-		Mat hierarchy = new Mat();
-		
-		// find contours
-		Imgproc.findContours(maskedImage, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-		
-		// if any contour exist...
-		if (hierarchy.size().height > 0 && hierarchy.size().width > 0)
-		{
-			// for each contour, display it in blue
-			for (int idx = 0; idx >= 0; idx = (int) hierarchy.get(0, idx)[0])
-			{
-				Imgproc.drawContours(frame, contours, idx, new Scalar(250, 0, 0));
-			}
-		}
-		
-		return frame;
-	}
+
 	
 	/**
 	 * Set typical {@link ImageView} properties: a fixed width and the

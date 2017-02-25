@@ -13,17 +13,17 @@
 				<Insets right="10" left="10" />
 			</padding>
 			<Label text="Begin Hue" />
-			<Slider fx:id="hueBegin" min="0" max="180" value="20" blockIncrement="1" />
+			<Slider fx:id="hueBegin" min="0" max="180" value="38" blockIncrement="1" />
 			<Label text="End Hue" />
-			<Slider fx:id="hueEnd" min="0" max="180" value="50" blockIncrement="1" />
+			<Slider fx:id="hueEnd" min="0" max="180" value="72" blockIncrement="1" />
 			<Label text="Begin Saturation " />
-			<Slider fx:id="saturationBegin" min="0" max="255" value="60" blockIncrement="1" />
+			<Slider fx:id="saturationBegin" min="0" max="255" value="74" blockIncrement="1" />
 			<Label text="End Saturation " />
-			<Slider fx:id="saturationEnd" min="0" max="255" value="200" blockIncrement="1" />
+			<Slider fx:id="saturationEnd" min="0" max="255" value="139" blockIncrement="1" />
 			<Label text="Begin Value" />
-			<Slider fx:id="valueBegin" min="0" max="255" value="50" blockIncrement="1" />
+			<Slider fx:id="valueBegin" min="0" max="255" value="80" blockIncrement="1" />
 			<Label text="End Value" />
-			<Slider fx:id="valueEnd" min="0" max="255" value="255" blockIncrement="1" />
+			<Slider fx:id="valueEnd" min="0" max="255" value="229" blockIncrement="1" />
 		</VBox>
 	</left>
 	<center>
@@ -46,7 +46,7 @@
 			<padding>
 				<Insets top="25" right="25" bottom="25" left="25" />
 			</padding>
-			<Button fx:id="axisCameraButton" alignment="center" text="Start Axis Camera" onAction="#startCamera" />
+			<Button fx:id="axisCameraButton" alignment="center" text="Start Axis Camera" onAction="#startAxisCamera" />
 			<Separator />
 			<Label fx:id="hsvCurrentValues" />
 		</VBox>
