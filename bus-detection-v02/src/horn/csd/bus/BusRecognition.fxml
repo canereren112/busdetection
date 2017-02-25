@@ -49,6 +49,7 @@
 			<Button fx:id="axisCameraButton" alignment="center" text="Start Axis Camera" onAction="#startAxisCamera" />
 			<Separator />
 			<Label fx:id="hsvCurrentValues" />
+			<Label fx:id="isBusDetected" />			
 		</VBox>
 	</bottom>
 </BorderPane>

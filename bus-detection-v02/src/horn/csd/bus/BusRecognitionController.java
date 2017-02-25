@@ -62,6 +62,8 @@ public class BusRecognitionController
 	// FXML label to show the current values set with the sliders
 	@FXML
 	private Label hsvCurrentValues;
+	@FXML
+	private Label isBusDetected;
 	
 	// a timer for acquiring the video stream
 	private ScheduledExecutorService timer;
@@ -72,18 +74,19 @@ public class BusRecognitionController
 	
 	// property for object binding
 	private ObjectProperty<String> hsvValuesProp;
-		
-	/**
-	 * The action triggered by pushing the button on the GUI
-	 */
+	private ObjectProperty<String> busDetectedProp;
+
 	@FXML
 	private void startAxisCamera()
 	{
 		// bind a text property with the string containing the current range of
 		// HSV values for object detection
 		hsvValuesProp = new SimpleObjectProperty<>();
+		busDetectedProp = new SimpleObjectProperty<>();
+		
 		this.hsvCurrentValues.textProperty().bind(hsvValuesProp);
-				
+		this.isBusDetected.textProperty().bind(busDetectedProp);
+		
 		// set a fixed width for all the image to show and preserve image ratio
 		this.imageViewProperties(this.originalFrame, 650);
 		this.imageViewProperties(this.maskImage, 300);
@@ -145,12 +148,7 @@ public class BusRecognitionController
 			this.capture.release();
 		}
 	}
-	
-	/**
-	 * Get a frame from the opened video stream (if any)
-	 * 
-	 * @return the {@link Image} to show
-	 */
+
 	private Image grabFrame()
 	{
 		// init everything
@@ -207,8 +205,9 @@ public class BusRecognitionController
 					Imgproc.dilate(mask, morphOutput, dilateElement);
 					Imgproc.dilate(mask, morphOutput, dilateElement);
 					
-					System.out.println("Number of pixels = " + countNumberOfPixels(morphOutput));
-
+					
+					
+					this.onFXThread(this.busDetectedProp, isBusDetectedResult(morphOutput));
 					// show the partial output
 					this.onFXThread(this.morphImage.imageProperty(), this.mat2Image(morphOutput));
 					
@@ -231,16 +230,7 @@ public class BusRecognitionController
 	}
 	
 
-	
-	/**
-	 * Set typical {@link ImageView} properties: a fixed width and the
-	 * information to preserve the original image ration
-	 * 
-	 * @param image
-	 *            the {@link ImageView} to use
-	 * @param dimension
-	 *            the width of the image to set
-	 */
+
 	private void imageViewProperties(ImageView image, int dimension)
 	{
 		// set a fixed width for the given ImageView
@@ -249,14 +239,7 @@ public class BusRecognitionController
 		image.setPreserveRatio(true);
 	}
 	
-	/**
-	 * Convert a {@link Mat} object (OpenCV) in the corresponding {@link Image}
-	 * for JavaFX
-	 * 
-	 * @param frame
-	 *            the {@link Mat} representing the current frame
-	 * @return the {@link Image} to show
-	 */
+
 	private Image mat2Image(Mat frame)
 	{
 		// create a temporary buffer
@@ -268,15 +251,7 @@ public class BusRecognitionController
 		return new Image(new ByteArrayInputStream(buffer.toArray()));
 	}
 	
-	/**
-	 * Generic method for putting element running on a non-JavaFX thread on the
-	 * JavaFX thread, to properly update the UI
-	 * 
-	 * @param property
-	 *            a {@link ObjectProperty}
-	 * @param value
-	 *            the value to set for the given {@link ObjectProperty}
-	 */
+
 	private <T> void onFXThread(final ObjectProperty<T> property, final T value)
 	{
 		Platform.runLater(new Runnable() {
@@ -289,6 +264,15 @@ public class BusRecognitionController
 		});
 	}
 	
+	
+	
+	private String isBusDetectedResult(Mat mat){
+		if(countNumberOfPixels(mat)>15000){
+			return "Bus detected";
+		}else{
+			return "There is no bus";
+		}
+	} 
 	
 	private int countNumberOfPixels(Mat mat){
 		BufferedImage bufImage = matToBufferedImage(mat);
