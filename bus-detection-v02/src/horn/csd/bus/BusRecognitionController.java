@@ -1,5 +1,9 @@
 package horn.csd.bus;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -203,9 +207,10 @@ public class BusRecognitionController
 					Imgproc.dilate(mask, morphOutput, dilateElement);
 					Imgproc.dilate(mask, morphOutput, dilateElement);
 					
-					Image morphImage = this.mat2Image(morphOutput);
+					System.out.println("Number of pixels = " + countNumberOfPixels(morphOutput));
+
 					// show the partial output
-					this.onFXThread(this.morphImage.imageProperty(), morphImage);
+					this.onFXThread(this.morphImage.imageProperty(), this.mat2Image(morphOutput));
 					
 					
 					
@@ -284,4 +289,31 @@ public class BusRecognitionController
 		});
 	}
 	
+	
+	private int countNumberOfPixels(Mat mat){
+		BufferedImage bufImage = matToBufferedImage(mat);
+		int count=0;
+  	   	for(int i=0; i< bufImage.getWidth(); i++){
+  	   		for(int j=0; j < bufImage.getHeight(); j++){
+  	   			if(bufImage.getRGB(i, j) == new Color(255, 255, 255).getRGB()){
+  	  	   			count++;
+  	   			}
+  	   		}
+  	   	}
+  	   	return count;
+	}
+	
+    private  BufferedImage matToBufferedImage(Mat mat) {
+
+        if (mat.height() > 0 && mat.width() > 0) {
+            BufferedImage image = new BufferedImage(mat.width(), mat.height(), BufferedImage.TYPE_3BYTE_BGR);
+            WritableRaster raster = image.getRaster();
+            DataBufferByte dataBuffer = (DataBufferByte) raster.getDataBuffer();
+            byte[] data = dataBuffer.getData();
+            mat.get(0, 0, data);
+            return image;
+        }
+
+        return null;
+    }
 }
