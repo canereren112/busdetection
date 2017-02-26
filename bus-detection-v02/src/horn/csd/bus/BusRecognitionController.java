@@ -21,6 +21,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
+import horn.csd.core.Constants;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -117,7 +118,7 @@ public class BusRecognitionController
 				};
 				
 				this.timer = Executors.newSingleThreadScheduledExecutor();
-				this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
+				this.timer.scheduleAtFixedRate(frameGrabber, 0,Integer.valueOf( Constants.AXIS_FPS), TimeUnit.MILLISECONDS);
 				
 				// update the button content
 				this.axisCameraButton.setText("Stop Axis Camera");

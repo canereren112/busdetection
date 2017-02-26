@@ -18,7 +18,7 @@ public class BusRecognitionApplication extends Application
 		{
 			BorderPane mainBorderPane = (BorderPane) FXMLLoader.load(getClass().getResource("BusRecognition.fxml"));
 			mainBorderPane.setStyle("-fx-background-color: #dddddd;");
-			Scene scene = new Scene(mainBorderPane, 1150, 650);
+			Scene scene = new Scene(mainBorderPane, 1150, 700);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
 			
