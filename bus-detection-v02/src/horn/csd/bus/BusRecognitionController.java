@@ -30,6 +30,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.text.Font;
 
 
 public class BusRecognitionController
@@ -86,7 +87,9 @@ public class BusRecognitionController
 		
 		this.hsvCurrentValues.textProperty().bind(hsvValuesProp);
 		this.isBusDetected.textProperty().bind(busDetectedProp);
-		
+		this.isBusDetected.setTextFill(javafx.scene.paint.Color.web("#028900"));
+		this.isBusDetected.setFont(new Font("Arial", 30));
+
 		// set a fixed width for all the image to show and preserve image ratio
 		this.imageViewProperties(this.originalFrame, 650);
 		this.imageViewProperties(this.maskImage, 300);
