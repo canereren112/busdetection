@@ -4,14 +4,26 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
+
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfPoint;
@@ -77,7 +89,12 @@ public class BusRecognitionController
 	// property for object binding
 	private ObjectProperty<String> hsvValuesProp;
 	private ObjectProperty<String> busDetectedProp;
-
+	
+	private String serverName = Constants.AXIS_IP;
+	private int port = Integer.parseInt(Constants.AXIS_PORT);
+	private String resolution = Constants.AXIS_RESOLUTION;
+	private String fps = Constants.AXIS_FPS;
+	
 	@FXML
 	private void startAxisCamera()
 	{
@@ -112,8 +129,7 @@ public class BusRecognitionController
 					@Override
 					public void run()
 					{
-						Image imageToShow = grabFrame();
-						originalFrame.setImage(imageToShow);
+						grabAxisFrame();
 					}
 				};
 				
@@ -153,87 +169,125 @@ public class BusRecognitionController
 		}
 	}
 
-	private Image grabFrame()
+		
+	private void grabAxisFrame()
 	{
 		// init everything
 		Image imageToShow = null;
 		Mat frame = new Mat();
 		
-		// check if the capture is open
-		if (this.capture.isOpened())
-		{
-			try
-			{
-				// read the current frame
-				this.capture.read(frame);
-				
-				// if the frame is not empty, process it
-				if (!frame.empty())
-				{
-					// init
-					Mat blurredImage = new Mat();
-					Mat hsvImage = new Mat();
-					Mat mask = new Mat();
-					Mat morphOutput = new Mat();
-					
-					// remove some noise
-					Imgproc.blur(frame, blurredImage, new Size(7, 7));
-					
-					// convert the frame to HSV
-					Imgproc.cvtColor(blurredImage, hsvImage, Imgproc.COLOR_BGR2HSV);
-					
-					// get thresholding values from the UI
-					// remember: H ranges 0-180, S and V range 0-255
-					Scalar minValues = new Scalar(this.hueBegin.getValue(), this.saturationBegin.getValue(), this.valueBegin.getValue());
-					Scalar maxValues = new Scalar(this.hueEnd.getValue(), this.saturationEnd.getValue(), this.valueEnd.getValue());
-					
-					// show the current selected HSV range
-					String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
-							+ "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1] + "\tValue range: "
-							+ minValues.val[2] + "-" + maxValues.val[2];
-					this.onFXThread(this.hsvValuesProp, valuesToPrint);
-					
+		try {
+			fillAxisCameraInformation();
+			System.out.println("Connecting to " + serverName + " on port " + port);
+			Socket client = new Socket(serverName, port);
+			System.out.println("Just connected to " + client.getRemoteSocketAddress());
 
-					Core.inRange(hsvImage, minValues, maxValues, mask);
-					// show the partial output
-					this.onFXThread(this.maskImage.imageProperty(), this.mat2Image(mask));
-					
-					// morphological operators
-					// dilate with large element, erode with small ones
-					Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(24, 24));
-					Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(12, 12));
-					
-					Imgproc.erode(mask, morphOutput, erodeElement);
-					Imgproc.erode(mask, morphOutput, erodeElement);
-					
-					Imgproc.dilate(mask, morphOutput, dilateElement);
-					Imgproc.dilate(mask, morphOutput, dilateElement);
-					
-					
-					
-					this.onFXThread(this.busDetectedProp, isBusDetectedResult(morphOutput));
-					// show the partial output
-					this.onFXThread(this.morphImage.imageProperty(), this.mat2Image(morphOutput));
-					
-					
-					
-					// convert the Mat object (OpenCV) to Image (JavaFX)
-					imageToShow = mat2Image(frame);
-				}
-				
-			}
-			catch (Exception e)
-			{
-				// log the (full) error
-				System.err.print("ERROR");
+			try {
+				InputStream is1 = client.getInputStream();
+				InputStreamReader isr1 = new InputStreamReader(is1);
+				BufferedReader br1 = new BufferedReader(isr1);
+				String message1 = br1.readLine();
+				//System.out.println("Available resolution: " + message1);
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
-		}
-		
-		return imageToShow;
-	}
+
+			OutputStream os = client.getOutputStream();			
+			
 	
 
+			OutputStreamWriter osw1 = new OutputStreamWriter(os);
+			BufferedWriter bw1 = new BufferedWriter(osw1);
+			String send = "resolution=" + resolution + "&" + "fps=" + fps;
+			
+			
+			bw1.write(send);
+			bw1.flush();
+
+			System.out.println("Sent " + send + " to server.");
+			int size;
+			int i, j = 0;
+			
+			try {
+				InputStream in = client.getInputStream();
+				DataInputStream data = new DataInputStream(in);
+
+				while (true) {
+					size = data.readInt();
+					System.out.println("Frame size: " + size);
+
+					byte[] bytes = new byte[size]; 
+					for(i = 0; i < size; i++) {
+						in.read(bytes, i, 1);
+					}
+
+					System.out.println("Refreshing the Image");
+					InputStream tempInputStream = new ByteArrayInputStream(bytes);
+					BufferedImage image = ImageIO.read(tempInputStream);
+					
+					frame= bufferedImageToMat(image);
+					if (!frame.empty()){
+						Mat blurredImage = new Mat();
+						Mat hsvImage = new Mat();
+						Mat mask = new Mat();
+						Mat morphOutput = new Mat();
+						
+						// remove some noise
+						Imgproc.blur(frame, blurredImage, new Size(7, 7));
+						
+						// convert the frame to HSV
+						Imgproc.cvtColor(blurredImage, hsvImage, Imgproc.COLOR_BGR2HSV);
+						
+						// get thresholding values from the UI
+						// remember: H ranges 0-180, S and V range 0-255
+						Scalar minValues = new Scalar(this.hueBegin.getValue(), this.saturationBegin.getValue(), this.valueBegin.getValue());
+						Scalar maxValues = new Scalar(this.hueEnd.getValue(), this.saturationEnd.getValue(), this.valueEnd.getValue());
+				
+						
+						// show the current selected HSV range
+						String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
+								+ "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1] + "\tValue range: "
+								+ minValues.val[2] + "-" + maxValues.val[2];
+						this.onFXThread(this.hsvValuesProp, valuesToPrint);
+						
+						Core.inRange(hsvImage, minValues, maxValues, mask);
+						// show the partial output
+						this.onFXThread(this.maskImage.imageProperty(), this.mat2Image(mask));//Top Small Screen
+						
+						// morphological operators
+						// dilate with large element, erode with small ones
+						Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(24, 24));
+						Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(12, 12));
+						
+						Imgproc.erode(mask, morphOutput, erodeElement);
+						Imgproc.erode(mask, morphOutput, erodeElement);
+						
+						Imgproc.dilate(mask, morphOutput, dilateElement);
+						Imgproc.dilate(mask, morphOutput, dilateElement);
+						
+						this.onFXThread(this.busDetectedProp, isBusDetectedResult(morphOutput));
+						// show the partial output
+						this.onFXThread(this.morphImage.imageProperty(), this.mat2Image(morphOutput));//Below Small Screen
+						
+						
+						// convert the Mat object (OpenCV) to Image (JavaFX)
+						imageToShow = mat2Image(frame);
+						this.originalFrame.setImage(imageToShow);
+
+					}
+					
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			client.close();
+		} catch (IOException e) {
+				e.printStackTrace();
+		}
+		
+		
+		
+	}
 
 	private void imageViewProperties(ImageView image, int dimension)
 	{
@@ -304,4 +358,24 @@ public class BusRecognitionController
 
         return null;
     }
+    
+	public void fillAxisCameraInformation() {
+		System.out.println("IP is " + Constants.AXIS_IP);
+		System.out.println("Port is " + Constants.AXIS_PORT);
+		System.out.println("Resolution is " + Constants.AXIS_RESOLUTION);
+		System.out.println("FPS is" + Constants.AXIS_FPS);
+
+		serverName = Constants.AXIS_IP;
+		port = Integer.parseInt(Constants.AXIS_PORT);
+		resolution = Constants.AXIS_RESOLUTION;
+		fps = Constants.AXIS_FPS;
+
+	}
+	
+	public static Mat bufferedImageToMat(BufferedImage bi) {
+		  Mat mat = new Mat(bi.getHeight(), bi.getWidth(), CvType.CV_8UC3);
+		  byte[] data = ((DataBufferByte) bi.getRaster().getDataBuffer()).getData();
+		  mat.put(0, 0, data);
+		  return mat;
+		}
 }
